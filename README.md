@@ -7,13 +7,9 @@ A repository fetcher, forked from golang/go
 
 ## Why?
 
----
-
-> When in doubt, simply port Go's source code, documentation, and tests.
+### When in doubt, simply port Go's source code, documentation, and tests.
 
 - from *Deno Standard Modules*, https://deno.land/std@0.68.0
-
----
 
 [Tilt](https://tilt.dev/) needs a system for importing extensions.
 
@@ -29,8 +25,28 @@ This package contains a fork of that package, to make it easier to re-use.
 ## How?
 
 ```
+package get_test
+
 import (
-  "github.com/
+	"fmt"
+	"os/user"
+	"path/filepath"
+	"testing"
+
+	"github.com/tilt-dev/go-get"
+)
+
+func ExampleGet(t *testing.T) {
+	usr, _ := user.Current()
+	downloader := get.NewDownloader(filepath.Join(usr.HomeDir, ".cache", "go-get"))
+	path, err := downloader.Download("github.com/tilt-dev/tilt-extensions/hello_world")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fmt.Printf("Downloaded to %s\n", path)
+}
+```
 
 ## License
 
