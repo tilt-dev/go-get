@@ -80,13 +80,13 @@ func (d *Downloader) Download(pkg string) (string, error) {
 		}
 		pkg = pkg[:slash]
 	}
-	if err := CheckImportPath(pkg); err != nil {
+	if err := checkImportPath(pkg); err != nil {
 		return "", fmt.Errorf("%s: invalid import path: %v", pkg, err)
 	}
 
 	// Analyze the import path to determine the version control system,
 	// repository, and the import path for the root of the repository.
-	rr, err := RepoRootForImportPath(pkg, IgnoreMod, security)
+	rr, err := repoRootForImportPath(pkg, security)
 	if err != nil {
 		return "", err
 	}

@@ -19,11 +19,11 @@ import (
 func TestRepoRootForImportPath(t *testing.T) {
 	tests := []struct {
 		path string
-		want *RepoRoot
+		want *repoRoot
 	}{
 		{
 			"github.com/golang/groupcache",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://github.com/golang/groupcache",
 			},
@@ -31,7 +31,7 @@ func TestRepoRootForImportPath(t *testing.T) {
 		// Unicode letters in directories (issue 18660).
 		{
 			"github.com/user/unicode/испытание",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://github.com/user/unicode",
 			},
@@ -39,14 +39,14 @@ func TestRepoRootForImportPath(t *testing.T) {
 		// IBM DevOps Services tests
 		{
 			"hub.jazz.net/git/user1/pkgname",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://hub.jazz.net/git/user1/pkgname",
 			},
 		},
 		{
 			"hub.jazz.net/git/user1/pkgname/submodule/submodule/submodule",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://hub.jazz.net/git/user1/pkgname",
 			},
@@ -87,7 +87,7 @@ func TestRepoRootForImportPath(t *testing.T) {
 		},
 		{
 			"hub.jazz.net/git/user/pkg.name",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://hub.jazz.net/git/user/pkg.name",
 			},
@@ -100,7 +100,7 @@ func TestRepoRootForImportPath(t *testing.T) {
 		// OpenStack tests
 		{
 			"git.openstack.org/openstack/swift",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://git.openstack.org/openstack/swift",
 			},
@@ -110,14 +110,14 @@ func TestRepoRootForImportPath(t *testing.T) {
 		// be compilable on both old and new go
 		{
 			"git.openstack.org/openstack/swift.git",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://git.openstack.org/openstack/swift.git",
 			},
 		},
 		{
 			"git.openstack.org/openstack/swift/go/hummingbird",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://git.openstack.org/openstack/swift",
 			},
@@ -146,21 +146,21 @@ func TestRepoRootForImportPath(t *testing.T) {
 		},
 		{
 			"git.apache.org/package-name.git",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://git.apache.org/package-name.git",
 			},
 		},
 		{
 			"git.apache.org/package-name_2.x.git/path/to/lib",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsGit,
 				Repo: "https://git.apache.org/package-name_2.x.git",
 			},
 		},
 		{
 			"chiselapp.com/user/kyle/repository/fossilgg",
-			&RepoRoot{
+			&repoRoot{
 				vcs:  vcsFossil,
 				Repo: "https://chiselapp.com/user/kyle/repository/fossilgg",
 			},
@@ -177,21 +177,21 @@ func TestRepoRootForImportPath(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		got, err := RepoRootForImportPath(test.path, IgnoreMod, web.SecureOnly)
+		got, err := repoRootForImportPath(test.path, web.SecureOnly)
 		want := test.want
 
 		if want == nil {
 			if err == nil {
-				t.Errorf("RepoRootForImportPath(%q): Error expected but not received", test.path)
+				t.Errorf("repoRootForImportPath(%q): Error expected but not received", test.path)
 			}
 			continue
 		}
 		if err != nil {
-			t.Errorf("RepoRootForImportPath(%q): %v", test.path, err)
+			t.Errorf("repoRootForImportPath(%q): %v", test.path, err)
 			continue
 		}
 		if got.vcs.name != want.vcs.name || got.Repo != want.Repo {
-			t.Errorf("RepoRootForImportPath(%q) = VCS(%s) Repo(%s), want VCS(%s) Repo(%s)", test.path, got.vcs, got.Repo, want.vcs, want.Repo)
+			t.Errorf("repoRootForImportPath(%q) = VCS(%s) Repo(%s), want VCS(%s) Repo(%s)", test.path, got.vcs, got.Repo, want.vcs, want.Repo)
 		}
 	}
 }
@@ -223,11 +223,11 @@ func TestFromDir(t *testing.T) {
 			f.Close()
 		}
 
-		want := RepoRoot{
+		want := repoRoot{
 			vcs:  vcs,
 			Root: path.Join("example.com", vcs.name),
 		}
-		var got RepoRoot
+		var got repoRoot
 		got.vcs, got.Root, err = vcsFromDir(dir, tempDir)
 		if err != nil {
 			t.Errorf("FromDir(%q, %q): %v", dir, tempDir, err)

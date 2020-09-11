@@ -423,7 +423,7 @@ func (v *vcsCmd) run1(dir string, cmdline string, keyval []string, verbose bool)
 
 	cmd := exec.Command(v.cmd, args...)
 	cmd.Dir = dir
-	cmd.Env = EnvForDir(cmd.Dir, os.Environ())
+	cmd.Env = envForDir(cmd.Dir, os.Environ())
 
 	out, err := cmd.Output()
 	if err != nil {
@@ -618,8 +618,8 @@ func checkNestedVCS(vcs *vcsCmd, dir, srcRoot string) error {
 	return nil
 }
 
-// RepoRoot describes the repository root for a tree of source code.
-type RepoRoot struct {
+// repoRoot describes the repository root for a tree of source code.
+type repoRoot struct {
 	Repo     string // repository URL, including scheme
 	Root     string // import path corresponding to root of repo
 	IsCustom bool   // defined by served <meta> tags (as opposed to hard-coded pattern)
@@ -637,17 +637,9 @@ func httpPrefix(s string) string {
 	return ""
 }
 
-// ModuleMode specifies whether to prefer modules when looking up code sources.
-type ModuleMode int
-
-const (
-	IgnoreMod ModuleMode = iota
-	PreferMod
-)
-
-// RepoRootForImportPath analyzes importPath to determine the
+// repoRootForImportPath analyzes importPath to determine the
 // version control system, and code repository to use.
-func RepoRootForImportPath(importPath string, mod ModuleMode, security web.SecurityMode) (*RepoRoot, error) {
+func repoRootForImportPath(importPath string, security web.SecurityMode) (*repoRoot, error) {
 	rr, err := repoRootFromVCSPaths(importPath, security, vcsPaths)
 
 	// Should have been taken care of above, but make sure.
@@ -663,7 +655,7 @@ var errUnknownSite = errors.New("dynamic lookup required to find mapping")
 
 // repoRootFromVCSPaths attempts to map importPath to a repoRoot
 // using the mappings defined in vcsPaths.
-func repoRootFromVCSPaths(importPath string, security web.SecurityMode, vcsPaths []*vcsPath) (*RepoRoot, error) {
+func repoRootFromVCSPaths(importPath string, security web.SecurityMode, vcsPaths []*vcsPath) (*repoRoot, error) {
 	// A common error is to use https://packagepath because that's what
 	// hg and git require. Diagnose this helpfully.
 	if prefix := httpPrefix(importPath); prefix != "" {
@@ -728,7 +720,7 @@ func repoRootFromVCSPaths(importPath string, security web.SecurityMode, vcsPaths
 			}
 			repoURL = scheme + "://" + repo
 		}
-		rr := &RepoRoot{
+		rr := &repoRoot{
 			Repo: repoURL,
 			Root: match["root"],
 			VCS:  vcs.cmd,
