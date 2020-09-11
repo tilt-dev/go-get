@@ -1,0 +1,11 @@
+version: 2.1
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.14
+
+    working_directory: /go/src/github.com/tilt-dev/go-get
+    steps:
+      - checkout
+      - run: go get -v -t -d ./...
+      - run: go test -v ./...
