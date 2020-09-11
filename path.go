@@ -20,8 +20,8 @@ import (
 //
 // NOTE: DO NOT MERGE THESE UNTIL WE DECIDE ABOUT ARBITRARY LETTERS IN MODULE MODE.
 
-// CheckImportPath checks that an import path is valid.
-func CheckImportPath(path string) error {
+// checkImportPath checks that an import path is valid.
+func checkImportPath(path string) error {
 	if err := checkPath(path, false); err != nil {
 		return fmt.Errorf("malformed import path %q: %v", path, err)
 	}
