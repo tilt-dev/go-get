@@ -2,11 +2,18 @@
 
 A repository fetcher, forked from golang/go
 
+[![Build Status](https://circleci.com/gh/tilt-dev/go-get/tree/master.svg?style=shield)](https://circleci.com/gh/tilt-dev/go-get)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/tilt-dev/go-get)](https://pkg.go.dev/github.com/tilt-dev/go-get)
+
 ## Why?
+
+---
 
 > When in doubt, simply port Go's source code, documentation, and tests.
 
 - from *Deno Standard Modules*, https://deno.land/std@0.68.0
+
+---
 
 [Tilt](https://tilt.dev/) needs a system for importing extensions.
 
@@ -21,7 +28,9 @@ This package contains a fork of that package, to make it easier to re-use.
 
 ## How?
 
-TK
+```
+import (
+  "github.com/
 
 ## License
 
