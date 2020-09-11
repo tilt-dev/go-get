@@ -92,6 +92,7 @@ func (d *Downloader) Download(pkg string) (string, error) {
 	}
 	vcs, repo, rootPath = rr.vcs, rr.Repo, rr.Root
 
+	result := filepath.Join(srcRoot, filepath.FromSlash(pkg))
 	root := filepath.Join(srcRoot, filepath.FromSlash(rootPath))
 
 	if err := checkNestedVCS(vcs, root, srcRoot); err != nil {
@@ -100,7 +101,7 @@ func (d *Downloader) Download(pkg string) (string, error) {
 
 	// If we've considered this repository already, don't do it again.
 	if d.downloadRootCache[root] {
-		return root, nil
+		return result, nil
 	}
 	d.downloadRootCache[root] = true
 
@@ -136,5 +137,5 @@ func (d *Downloader) Download(pkg string) (string, error) {
 		return "", err
 	}
 
-	return root, nil
+	return result, nil
 }
