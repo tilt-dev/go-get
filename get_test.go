@@ -4,19 +4,25 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestGet(t *testing.T) {
+func setupDir(t *testing.T) string {
 	dir, err := ioutil.TempDir("", t.Name())
 	require.NoError(t, err)
-	defer func() {
+	t.Cleanup(func() {
 		_ = os.RemoveAll(dir)
-	}()
+	})
+	return dir
+}
 
+func TestGet(t *testing.T) {
+	dir := setupDir(t)
 	downloader := NewDownloader(dir)
 	path, err := downloader.Download("github.com/tilt-dev/tilt-extensions/hello_world")
 	require.NoError(t, err)
@@ -26,13 +32,31 @@ func TestGet(t *testing.T) {
 	assert.Contains(t, string(tiltfile), `print("Hello world!")`)
 }
 
-func TestGetCached(t *testing.T) {
-	dir, err := ioutil.TempDir("", t.Name())
-	require.NoError(t, err)
-	defer func() {
-		_ = os.RemoveAll(dir)
-	}()
+func TestDestinationPath(t *testing.T) {
+	dir := setupDir(t)
+	downloader := NewDownloader(dir)
+	result := downloader.DestinationPath("github.com/tilt-dev/tilt-extensions/hello_world")
+	assert.True(t, strings.HasSuffix(result, "/github.com/tilt-dev/tilt-extensions/hello_world"))
+}
 
+func TestHeadRef(t *testing.T) {
+	dir := setupDir(t)
+	downloader := NewDownloader(dir)
+	_, err := downloader.HeadRef("github.com/tilt-dev/tilt-extensions/hello_world")
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "no such file or directory")
+	}
+
+	_, err = downloader.Download("github.com/tilt-dev/tilt-extensions/hello_world")
+	require.NoError(t, err)
+
+	ref, err := downloader.HeadRef("github.com/tilt-dev/tilt-extensions/hello_world")
+	require.NoError(t, err)
+	assert.True(t, regexp.MustCompile("^[0-9a-f]{40}$").MatchString(ref))
+}
+
+func TestGetCached(t *testing.T) {
+	dir := setupDir(t)
 	downloader := NewDownloader(dir)
 	path, err := downloader.Download("github.com/tilt-dev/tilt-extensions/hello_world")
 	require.NoError(t, err)
