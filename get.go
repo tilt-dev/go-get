@@ -6,6 +6,7 @@ package get
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -45,11 +46,14 @@ func init() {
 // Downloader fetches repositories under the given source tree.
 // Not thread-safe.
 type Downloader struct {
+	Stderr io.Writer
+
 	srcRoot string
 }
 
-func NewDownloader(srcRoot string) Downloader {
-	return Downloader{
+func NewDownloader(srcRoot string) *Downloader {
+	return &Downloader{
+		Stderr:  os.Stderr,
 		srcRoot: srcRoot,
 	}
 }
@@ -69,7 +73,7 @@ func (d *Downloader) repoRoot(pkg string) (string, *repoRoot, error) {
 		return "", nil, fmt.Errorf("%s: invalid import path: %v", pkg, err)
 	}
 
-	rr, err := repoRootForImportPath(pkg, security)
+	rr, err := repoRootForImportPath(pkg, security, d.Stderr)
 	if err != nil {
 		return "", nil, err
 	}
@@ -116,18 +120,18 @@ func (d *Downloader) Download(pkg string) (string, error) {
 			return "", err
 		}
 
-		if err = vcs.create(root, repo); err != nil {
+		if err = vcs.create(root, repo, d.Stderr); err != nil {
 			return "", err
 		}
 	} else {
 		// Metadata directory does exist; download incremental updates.
-		if err = vcs.download(root); err != nil {
+		if err = vcs.download(root, d.Stderr); err != nil {
 			return "", err
 		}
 	}
 
 	// Select and sync to appropriate version of the repository.
-	if err := vcs.tagSync(root, ""); err != nil {
+	if err := vcs.tagSync(root, "", d.Stderr); err != nil {
 		return "", err
 	}
 
@@ -155,9 +159,13 @@ func (d *Downloader) HeadRef(pkg string) (string, error) {
 	}
 	rootPath := rr.Root
 	root := filepath.Join(srcRoot, filepath.FromSlash(rootPath))
-	out, err := vcs.runOutput(root, "rev-parse HEAD")
+	out, err := vcs.runOutput(d.toCmdContext(root), "rev-parse HEAD")
 	if err != nil {
 		return "", err
 	}
 	return strings.TrimSpace(string(out)), nil
+}
+
+func (d *Downloader) toCmdContext(dir string) cmdContext {
+	return cmdContext{stderr: d.Stderr, dir: dir}
 }
