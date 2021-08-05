@@ -138,6 +138,25 @@ func (d *Downloader) Download(pkg string) (string, error) {
 	return result, nil
 }
 
+// Update the checked out repo to the given ref.
+// Assumes the repo has already been downloaded.
+func (d *Downloader) RefSync(pkg, tag string) error {
+	srcRoot := d.srcRoot
+	_, rr, err := d.repoRoot(pkg)
+	if err != nil {
+		return err
+	}
+	vcs, rootPath := rr.vcs, rr.Root
+	root := filepath.Join(srcRoot, filepath.FromSlash(rootPath))
+	cmdCtx := newCmdContext(root, d.Stderr)
+	for _, cmd := range vcs.tagSyncCmd {
+		if err := vcs.run(cmdCtx, cmd, "tag", tag); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Determines where the repository will be downloaded before we download it.
 func (d *Downloader) DestinationPath(pkg string) string {
 	srcRoot := d.srcRoot
