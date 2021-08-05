@@ -39,6 +39,22 @@ func TestDestinationPath(t *testing.T) {
 	assert.True(t, strings.HasSuffix(result, "/github.com/tilt-dev/tilt-extensions/hello_world"))
 }
 
+func TestTagSync(t *testing.T) {
+	dir := setupDir(t)
+	dlr := NewDownloader(dir)
+	result, err := dlr.Download("github.com/tilt-dev/tilt-extensions")
+	require.NoError(t, err)
+
+	err = dlr.RefSync("github.com/tilt-dev/tilt-extensions",
+		"5670e8d8c5925981d019e6065a30058fc50eb299") // initial commit
+	require.NoError(t, err)
+
+	contents, err := ioutil.ReadFile(filepath.Join(result, "README.md"))
+	require.NoError(t, err)
+
+	assert.Equal(t, "# tilt-extensions", string(contents))
+}
+
 func TestHeadRef(t *testing.T) {
 	dir := setupDir(t)
 	downloader := NewDownloader(dir)
