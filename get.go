@@ -46,19 +46,11 @@ func init() {
 // Not thread-safe.
 type Downloader struct {
 	srcRoot string
-
-	// downloadRootCache records the version control repository
-	// root directories we have already considered during the download.
-	// For example, all the packages in the github.com/google/codesearch repo
-	// share the same root (the directory for that path), and we only need
-	// to run the hg commands to consider each repository once.
-	downloadRootCache map[string]bool
 }
 
 func NewDownloader(srcRoot string) Downloader {
 	return Downloader{
-		srcRoot:           srcRoot,
-		downloadRootCache: map[string]bool{},
+		srcRoot: srcRoot,
 	}
 }
 
@@ -106,12 +98,6 @@ func (d *Downloader) Download(pkg string) (string, error) {
 	if err := checkNestedVCS(vcs, root, srcRoot); err != nil {
 		return "", err
 	}
-
-	// If we've considered this repository already, don't do it again.
-	if d.downloadRootCache[root] {
-		return result, nil
-	}
-	d.downloadRootCache[root] = true
 
 	// Check that this is an appropriate place for the repo to be checked out.
 	// The target directory must either not exist or have a repo checked out already.
