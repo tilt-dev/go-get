@@ -12,13 +12,34 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupDir(t *testing.T) string {
+func tmpdir(t *testing.T) string {
+	t.Helper()
 	dir, err := ioutil.TempDir("", t.Name())
-	require.NoError(t, err)
+	require.NoError(t, err, "Could not create tmpdir")
 	t.Cleanup(func() {
 		_ = os.RemoveAll(dir)
 	})
 	return dir
+}
+
+func setupDir(t *testing.T) string {
+	t.Helper()
+
+	// force the tests to run in an empty working directory
+	// because otherwise the working directory will be the `go-get` local
+	// repo path, which is itself a git command, so commands that don't
+	// properly chdir could inadvertently run against this repo
+	fakeWd := tmpdir(t)
+	cwd, err := os.Getwd()
+	require.NoError(t, err, "Could not get cwd")
+	require.NoError(t, os.Chdir(fakeWd), "Could not change cwd")
+	t.Cleanup(func() {
+		if err := os.Chdir(cwd); err != nil {
+			t.Errorf("failed to restore current working directory: %v", err)
+		}
+	})
+
+	return tmpdir(t)
 }
 
 func TestGet(t *testing.T) {
