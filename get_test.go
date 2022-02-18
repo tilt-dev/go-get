@@ -55,6 +55,21 @@ func TestTagSync(t *testing.T) {
 	assert.Equal(t, "# tilt-extensions", string(contents))
 }
 
+func TestVersionTagSync(t *testing.T) {
+	dir := setupDir(t)
+	dlr := NewDownloader(dir)
+	result, err := dlr.Download("github.com/tilt-dev/tilt-extensions")
+	require.NoError(t, err)
+
+	err = dlr.RefSync("github.com/tilt-dev/tilt-extensions", "v0.25.0")
+	require.NoError(t, err)
+
+	contents, err := ioutil.ReadFile(filepath.Join(result, "README.md"))
+	require.NoError(t, err)
+
+	assert.True(t, strings.HasPrefix(string(contents), "# Tilt Extensions"))
+}
+
 func TestHeadRef(t *testing.T) {
 	dir := setupDir(t)
 	downloader := NewDownloader(dir)
