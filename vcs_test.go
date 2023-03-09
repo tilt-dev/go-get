@@ -36,6 +36,13 @@ func TestRepoRootForImportPath(t *testing.T) {
 				Repo: "https://github.com/user/unicode",
 			},
 		},
+		{
+			"gitlab.com/gitlab-org/gitlab-terminal",
+			&repoRoot{
+				vcs:  vcsGit,
+				Repo: "https://gitlab.com/gitlab-org/gitlab-terminal",
+			},
+		},
 		// IBM DevOps Services tests
 		{
 			"hub.jazz.net/git/user1/pkgname",
