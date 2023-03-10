@@ -28,6 +28,13 @@ func TestRepoRootForImportPath(t *testing.T) {
 				Repo: "https://github.com/golang/groupcache",
 			},
 		},
+		{
+			"github.com/tilt-dev/tilt-extensions",
+			&repoRoot{
+				vcs:  vcsGit,
+				Repo: "https://github.com/tilt-dev/tilt-extensions",
+			},
+		},
 		// Unicode letters in directories (issue 18660).
 		{
 			"github.com/user/unicode/испытание",
@@ -37,10 +44,10 @@ func TestRepoRootForImportPath(t *testing.T) {
 			},
 		},
 		{
-			"gitlab.com/gitlab-org/gitlab-terminal",
+			"gitlab.com/nicks6/tilt-extension-experiment",
 			&repoRoot{
 				vcs:  vcsGit,
-				Repo: "https://gitlab.com/gitlab-org/gitlab-terminal",
+				Repo: "https://gitlab.com/nicks6/tilt-extension-experiment",
 			},
 		},
 		// IBM DevOps Services tests

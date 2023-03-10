@@ -1,6 +1,7 @@
 package get
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -51,13 +52,24 @@ func TestGet(t *testing.T) {
 	tiltfile, err := ioutil.ReadFile(filepath.Join(path, "Tiltfile"))
 	require.NoError(t, err)
 	assert.Contains(t, string(tiltfile), `print("Hello world!")`)
+
+	path, err = downloader.Download("gitlab.com/nicks6/tilt-extension-experiment")
+	require.NoError(t, err)
+
+	tiltfile, err = ioutil.ReadFile(filepath.Join(path, "tilt_extension", "Tiltfile"))
+	require.NoError(t, err)
+	assert.Contains(t, string(tiltfile), `def dotnet_build(ref,context = ".", version = "latest"):`)
+	assert.Contains(t, string(tiltfile), `def vue_build(ref,context = ".", version = "latest"):`)
 }
 
 func TestDestinationPath(t *testing.T) {
 	dir := setupDir(t)
 	downloader := NewDownloader(dir)
 	result := downloader.DestinationPath("github.com/tilt-dev/tilt-extensions/hello_world")
-	assert.True(t, strings.HasSuffix(result, "/github.com/tilt-dev/tilt-extensions/hello_world"))
+	assert.True(t, strings.HasSuffix(result, filepath.Join("github.com", "tilt-dev", "tilt-extensions", "hello_world")))
+
+	result = downloader.DestinationPath("gitlab.com/nicks6/tilt-extension-experiment")
+	assert.True(t, strings.HasSuffix(result, filepath.Join("gitlab.com", "nicks6", "tilt-extension-experiment")))
 }
 
 func TestTagSync(t *testing.T) {
@@ -74,6 +86,18 @@ func TestTagSync(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "# tilt-extensions", string(contents))
+
+	result, err = dlr.Download("gitlab.com/nicks6/tilt-extension-experiment")
+	require.NoError(t, err)
+
+	err = dlr.RefSync("gitlab.com/nicks6/tilt-extension-experiment",
+		"93df1cfd37237550d0e10b2384a45a889200c1ef")
+	require.NoError(t, err)
+
+	contents, err = ioutil.ReadFile(filepath.Join(result, "README.md"))
+	require.NoError(t, err)
+
+	assert.Contains(t, string(contents), "# tilt-extension-experiment")
 }
 
 func TestVersionTagSync(t *testing.T) {
@@ -89,6 +113,17 @@ func TestVersionTagSync(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.True(t, strings.HasPrefix(string(contents), "# Tilt Extensions"))
+
+	result, err = dlr.Download("gitlab.com/brshore/tilt-extension-experiment")
+	require.NoError(t, err)
+
+	err = dlr.RefSync("gitlab.com/brshore/tilt-extension-experiment", "v0.0.1")
+	require.NoError(t, err)
+
+	contents, err = ioutil.ReadFile(filepath.Join(result, "README.md"))
+	require.NoError(t, err)
+
+	assert.True(t, strings.HasPrefix(string(contents), "# tilt-extension-experiment"))
 }
 
 func TestHeadRef(t *testing.T) {
@@ -96,13 +131,21 @@ func TestHeadRef(t *testing.T) {
 	downloader := NewDownloader(dir)
 	_, err := downloader.HeadRef("github.com/tilt-dev/tilt-extensions/hello_world")
 	if assert.Error(t, err) {
-		assert.Contains(t, err.Error(), "no such file or directory")
+		var pathErr *os.PathError // use *os.PathError type, error string differs between OS
+		assert.True(t, errors.As(err, &pathErr))
 	}
 
 	_, err = downloader.Download("github.com/tilt-dev/tilt-extensions/hello_world")
 	require.NoError(t, err)
 
 	ref, err := downloader.HeadRef("github.com/tilt-dev/tilt-extensions/hello_world")
+	require.NoError(t, err)
+	assert.True(t, regexp.MustCompile("^[0-9a-f]{40}$").MatchString(ref))
+
+	_, err = downloader.Download("gitlab.com/nicks6/tilt-extension-experiment")
+	require.NoError(t, err)
+
+	ref, err = downloader.HeadRef("gitlab.com/nicks6/tilt-extension-experiment")
 	require.NoError(t, err)
 	assert.True(t, regexp.MustCompile("^[0-9a-f]{40}$").MatchString(ref))
 }
@@ -125,6 +168,19 @@ func TestGetCached(t *testing.T) {
 	require.NoError(t, err)
 
 	tiltfile, err := ioutil.ReadFile(filepath.Join(path2, "Tiltfile"))
+	require.NoError(t, err)
+	assert.Contains(t, string(tiltfile), `print("Goodbye world!")`)
+
+	path, err = downloader.Download("gitlab.com/nicks6/tilt-extension-experiment")
+	require.NoError(t, err)
+
+	err = ioutil.WriteFile(filepath.Join(path, "tilt_extension", "Tiltfile"), []byte(`print("Goodbye world!")`), os.FileMode(0644))
+	require.NoError(t, err)
+
+	path2, err = downloader2.Download("gitlab.com/nicks6/tilt-extension-experiment")
+	require.NoError(t, err)
+
+	tiltfile, err = ioutil.ReadFile(filepath.Join(path2, "tilt_extension", "Tiltfile"))
 	require.NoError(t, err)
 	assert.Contains(t, string(tiltfile), `print("Goodbye world!")`)
 }
