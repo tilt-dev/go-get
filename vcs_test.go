@@ -50,6 +50,14 @@ func TestRepoRootForImportPath(t *testing.T) {
 				Repo: "https://gitlab.com/nicks6/tilt-extension-experiment",
 			},
 		},
+		// GitLab nested groups (issue tilt-dev/tilt#6352).
+		{
+			"gitlab.com/myorg/mygroup/mysubgroup/myproject",
+			&repoRoot{
+				vcs:  vcsGit,
+				Repo: "https://gitlab.com/myorg/mygroup/mysubgroup/myproject",
+			},
+		},
 		// IBM DevOps Services tests
 		{
 			"hub.jazz.net/git/user1/pkgname",
